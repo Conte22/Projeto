@@ -1,32 +1,22 @@
 <?php
 
 class Dono {
-
     private $id;
     private $nome;
     private $fone;
 
     public function __construct($nome, $fone, $id = null) {
-
         $this->nome = $nome;
         $this->fone = $fone;
         $this->id = $id;
     }
 
-    public function getId() {
-        return $this->id;
-    }
-
-    public function getNome() {
-        return $this->nome;
-    }
-
-    public function getFone() {
-        return $this->fone;
-    }
+    public function getId() { return $this->id; }
+    public function getNome() { return $this->nome; }
+    public function getFone() { return $this->fone; }
 }
-class Animal {
 
+class Animal {
     private $id;
     private $nome_animal;
     private $especie;
@@ -37,22 +27,16 @@ class Animal {
         $this->id = $id;
     }
 
-    public function getId() {
-        return $this->id;
-    }
+    public function getId() { return $this->id; }
 
-    public function getNomeAnimal() {
-        return $this->nome_animal;
-    }
+    public function getNomeAnimal() { return $this->nome_animal; }
 
-    public function getEspecie() {
-        return $this->especie;
-    }
+    public function getEspecie() { return $this->especie; }
 }
 
 $host = "localhost";
 $porta = "5432";
-$database = "pet";
+$database = "petShop";
 $usuario = "postgres";
 $senha = "postgres";
 
@@ -60,199 +44,143 @@ $dsn = "pgsql:host=$host;port=$porta;dbname=$database";
 
 $conexao = new PDO($dsn, $usuario, $senha);
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
+if ($_SERVER["REQUEST_METHOD"] == "POST") 
+    {
     if (isset($_POST['salvar_dono'])) {
-
-        $dono = new Dono(
-            $_POST['nome'],
-            $_POST['fone']
-        );
-
-        $sql = "INSERT INTO dono(nome, fone)
-                VALUES (?, ?)";
-
-        $conexao->prepare($sql)->execute([
-
-            $dono->getNome(),
-            $dono->getFone()
-
-        ]);
+        $dono = new Dono($_POST['nome'], $_POST['fone']);
+        $sql = "INSERT INTO dono(nome, fone) VALUES (?, ?)";
+        $stmt = $conexao->prepare($sql);
+        $stmt->execute([$dono->getNome(), $dono->getFone()]);
     }
 
     if (isset($_POST['salvar_animal'])) {
-
-        $animal = new Animal(
-            $_POST['nome_animal'],
-            $_POST['especie']
-        );
-
-        $sql = "INSERT INTO animal(nome_animal, especie)
-                VALUES (?, ?)";
-
-        $conexao->prepare($sql)->execute([
-
-            $animal->getNomeAnimal(),
-            $animal->getEspecie()
-
-        ]);
+        $animal = new Animal($_POST['nome_animal'], $_POST['especie']);
+        $sql = "INSERT INTO animal(nome_animal, especie) VALUES (?, ?)";
+        $stmt = $conexao->prepare($sql);
+        $stmt->execute([$animal->getNomeAnimal(), $animal->getEspecie()]);
     }
-
-    header("Location: index.php");
-    exit;
 }
 
 $donos = [];
+if (isset($_GET['ver_donos'])) 
+    {
+    $sqlDonos = "SELECT * FROM dono";
+    $resultado = $conexao->query($sqlDonos);
+    $rows = $resultado->fetchAll(PDO::FETCH_ASSOC);
 
-foreach ($conexao->query("SELECT * FROM dono") as $row) {
-
-    $donos[] = new Dono(
-
-        $row['nome'],
-        $row['fone'],
-        $row['id']
-
-    );
+    foreach ($rows as $row) {
+        $donos[] = new Dono($row['nome'], $row['fone'], $row['id']);
+    }
 }
 
 $animais = [];
+if (isset($_GET['ver_animais'])) 
+    {
+    $sqlAnimais = "SELECT * FROM animal";
+    $resultado = $conexao->query($sqlAnimais);
+    $rows = $resultado->fetchAll(PDO::FETCH_ASSOC);
 
-foreach ($conexao->query("SELECT * FROM animal") as $row) {
-
-    $animais[] = new Animal(
-
-        $row['nome_animal'],
-        $row['especie'],
-        $row['id']
-
-    );
+    foreach ($rows as $row) {
+        $animais[] = new Animal($row['nome_animal'], $row['especie'], $row['id']);
+    }
 }
 
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pet Shop Univates</title>
-
+    <title>Pet Shop</title>
     <style>
+        body { 
+        font-family: Georgia; 
+        margin: 40px; 
+        text-align: center;}
+        
+        .container { 
+        display: flex; 
+        justify-content: center; 
+        gap: 60px;}
+        
+        .box { 
+        width: 400px; 
+        border: 2px solid black; 
+        padding: 15px; 
+        text-align: left;}
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
+        label { 
+        display: block; 
+        margin-top: 10px;}
 
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+        input { 
+        width: 100%; 
+        border: none; 
+        border-bottom: 2px solid black; 
+        padding: 6px; 
+        margin-bottom: 15px; 
+        outline: none; }
 
-        .container {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
+        button, .btn-link { 
+        width: 100%; 
+        padding: 10px; 
+        border: 2px solid black; 
+        background: none; 
+        display: block; 
+        cursor: pointer; 
+        text-decoration: none; 
+        color: black; 
+        text-align: center; 
+        box-sizing: border-box; 
+        margin-top: 5px; }
 
-        section {
-            background: white;
-            padding: 20px;
-            width: 320px;
-            border: 1px solid #ccc;
-        }
+        button:hover, .btn-link:hover {
+        background: #3f95f1;}
 
-        h2 {
-            margin-top: 0;
-            text-align: center;
-        }
-
-        input {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #ddd;
-            border: 1px solid #999;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #ccc;
-        }
-
-        table {
-            width: 100%;
-            margin-top: 15px;
-            border-collapse: collapse;
-        }
+        table { 
+        width: 100%; 
+        margin-top: 15px; 
+        border-collapse: collapse; }
 
         th, td {
-            border: 1px solid #999;
-            padding: 6px;
-            text-align: center;
-        }
+         border: 1px solid black; 
+         padding: 6px; 
+         text-align: center; }
 
-        th {
-            background: #eaeaea;
-        }
+         h1 {
+        color: #2a7659;
+        font-size: 80px; 
+        font-family: Georgia; }
 
+        h2 {
+        color: #2b2a76;
+        font-size: 30px; 
+        font-family: Georgia; }
     </style>
-
 </head>
-
 <body>
 
-    <h1>Sistema Pet Shop</h1>
+    <h1>Pet Shop</h1>
 
     <div class="container">
-
-        <section>
-
-            <h2>Cadastro de Dono</h2>
-
+        <div class="box">
+            <h2>Dono</h2>
             <form method="post">
-
-                <input 
-                type="text"
-                name="nome"
-                placeholder="Nome do Dono"
-                required>
-
-                <input 
-                type="text"
-                name="fone"
-                placeholder="Telefone"
-                required>
-
-                <button 
-                type="submit"
-                name="salvar_dono">
-                    Salvar Dono
-                </button>
-
+                <label>Nome</label>
+                <input type="text" name="nome" required>
+                <label>Celular</label>
+                <input type="text" name="fone" required>
+                <button type="submit" name="salvar_dono">Cadastrar</button>
             </form>
+
+            <a href="?ver_donos=1" class="btn-link">Lista de Donos</a>
+
+            <?php if (!empty($donos)): ?>
 
             <table>
 
-                <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Telefone</th>
-                </tr>
-
+                <tr><th>ID</th><th>Nome</th><th>Fone</th></tr>
                 <?php foreach ($donos as $d): ?>
-
                 <tr>
                     <td><?= $d->getId() ?></td>
                     <td><?= $d->getNome() ?></td>
@@ -262,58 +190,36 @@ foreach ($conexao->query("SELECT * FROM animal") as $row) {
                 <?php endforeach; ?>
 
             </table>
+            <?php endif; ?>
+        </div>
 
-        </section>
-
-        <section>
-
-            <h2>Cadastro de Animal</h2>
-
+        <div class="box">
+            <h2>Animal</h2>
             <form method="post">
-
-                <input 
-                type="text"
-                name="nome_animal"
-                placeholder="Nome do Animal"
-                required>
-
-                <input 
-                type="text"
-                name="especie"
-                placeholder="Espécie"
-                required>
-
-                <button 
-                type="submit"
-                name="salvar_animal">
-                    Salvar Animal
-                </button>
-
+                <label>Nome</label>
+                <input type="text" name="nome_animal" required>
+                <label>Espécie</label>
+                <input type="text" name="especie" required>
+                <button type="submit" name="salvar_animal">Cadastrar</button>
             </form>
 
-            <table>
+         <a href="?ver_animais=1" class="btn-link">Lista de Animais</a>
 
-                <tr>
-                    <th>ID</th>
-                    <th>Animal</th>
-                    <th>Espécie</th>
-                </tr>
-
-<?php foreach ($animais as $a): ?>
-
-<tr>
-<td><?= $a->getId() ?></td>
-<td><?= $a->getNomeAnimal() ?></td>
-<td><?= $a->getEspecie() ?></td>
-</tr>
-
-<?php endforeach; ?>
-
-</table>
-
-</section>
-
+         <?php if (!empty($animais)): ?>
+         <table>
+         <tr><th>ID</th><th>Nome</th><th>Espécie</th></tr>
+         <?php foreach ($animais as $a): ?>
+        <tr>
+            <td><?= $a->getId() ?></td>
+            <td><?= $a->getNomeAnimal() ?></td>
+            <td><?= $a->getEspecie() ?></td>
+         </tr>
+        <?php endforeach; ?>
+      </table>
+     <?php endif; ?>
+    </div>
 </div>
 
 </body>
+
 </html>
